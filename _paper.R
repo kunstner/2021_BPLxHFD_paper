@@ -16,6 +16,7 @@ library(estimatr)
 library(selbal)
 library(ppcor)
 library(ALDEx2)
+library(corncob)
 
 # for multi panel plots
 library(cowplot)
@@ -704,6 +705,251 @@ fig_5
 
 rm(aldex.clr)
 
+# Supplementary figure 2 --------------------------------------------------
+
+sigLevel <- 0.05
+TAXRANK <- "Phylum"
+
+# Corncob week 0: Compare Strains
+corncob_dat <- ps %>%
+    subset_samples(physeq = ., Week == "w0") %>%
+    tax_glom(physeq = ., taxrank = TAXRANK)
+# baseline: BPL
+da_analysis <-
+    differentialTest(formula = ~ Strain + Sex,
+                     phi.formula = ~ Strain + Sex, # model to be fitted to the dispersion
+                     formula_null = ~ Sex, # Formula for mean under null, without response
+                     phi.formula_null = ~ Strain + Sex, # Formula for overdispersion under null, without response
+                     test = "Wald", boot = FALSE, B = 0,
+                     data = corncob_dat,
+                     fdr_cutoff = sigLevel)
+da_plot <- plot(da_analysis, level = c("Phylum")) + ggplot2::xlim(c(-10,10))
+da_data <- data.frame(
+    Taxa = corncob::otu_to_taxonomy(OTU = da_analysis$significant_taxa, data = corncob_dat, level = TAXRANK),
+    Taxa_veri = da_plot$data$taxa,
+    p_fdr = da_analysis$p_fdr[da_analysis$p_fdr < sigLevel & !is.na(da_analysis$p_fdr) ],
+    Effect = da_plot$data$x,
+    Error_min = da_plot$data$xmin,
+    Error_max = da_plot$data$xmax
+)
+suppl_fig2a <- da_data %>%
+    dplyr::mutate(Taxa = gsub(pattern = "_", replacement = " ", Taxa)) %>%
+    ggplot(data = ., aes(x = Effect, y = factor(Taxa, levels = rev(levels(factor(Taxa)))))) +
+    geom_point(size = 3) +
+    geom_errorbar(aes(xmin=Error_min, xmax=Error_max), width=.3,
+                  position=position_dodge(.9)) +
+    geom_vline(xintercept=0, linetype="dashed",
+               color = "grey45", size = 1) +
+    theme(axis.line = element_line(colour = "black"),
+          legend.position = "none",
+          panel.grid.major = element_line(size = 0.25, linetype = 'solid',
+                                          colour = "grey85"),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank(),
+          axis.text.x = element_text(size=12),
+          strip.text.x = element_text(angle = 0, size = 12),
+          axis.text.y = element_text(size=12, face = "italic"),
+          #axis.ticks.x = element_blank(),
+          text = element_text(size = 12),
+          strip.background = element_rect(colour="white", fill="white", size=1.5, linetype="solid")
+    ) +
+    xlim(-4, 4) +
+    xlab("Effect size (BPL vs ALR)") + ylab("")
+suppl_fig2a
+
+# Corncob week 8: Compare CD
+corncob_dat <- ps %>%
+    subset_samples(physeq = ., Week == "w8" & Diet == 'CD') %>%
+    tax_glom(physeq = ., taxrank = TAXRANK)
+da_analysis <-
+    differentialTest(formula = ~ Strain + Sex,
+                     phi.formula = ~ Strain + Sex, # model to be fitted to the dispersion
+                     formula_null = ~ Sex, # Formula for mean under null, without response
+                     phi.formula_null = ~ Strain + Sex, # Formula for overdispersion under null, without response
+                     test = "Wald", boot = FALSE, B = 0,
+                     data = corncob_dat,
+                     fdr_cutoff = sigLevel)
+da_plot <- plot(da_analysis, level = c("Phylum")) + ggplot2::xlim(c(-10,10))
+da_data <- data.frame(
+    Taxa = corncob::otu_to_taxonomy(OTU = da_analysis$significant_taxa, data = corncob_dat, level = TAXRANK),
+    Taxa_veri = da_plot$data$taxa,
+    p_fdr = da_analysis$p_fdr[da_analysis$p_fdr < sigLevel & !is.na(da_analysis$p_fdr) ],
+    Effect = da_plot$data$x,
+    Error_min = da_plot$data$xmin,
+    Error_max = da_plot$data$xmax
+)
+
+suppl_fig2b <- da_data %>%
+    dplyr::mutate(Taxa = gsub(pattern = "_", replacement = " ", Taxa)) %>%
+    ggplot(data = ., aes(x = Effect, y = factor(Taxa, levels = rev(levels(factor(Taxa)))))) +
+    geom_point(size = 3) +
+    geom_errorbar(aes(xmin=Error_min, xmax=Error_max), width=.3,
+                  position=position_dodge(.9)) +
+    geom_vline(xintercept=0, linetype="dashed",
+               color = "grey45", size = 1) +
+    theme(axis.line = element_line(colour = "black"),
+          legend.position = "none",
+          panel.grid.major = element_line(size = 0.25, linetype = 'solid',
+                                          colour = "grey85"),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank(),
+          axis.text.x = element_text(size=12),
+          strip.text.x = element_text(angle = 0, size = 12),
+          axis.text.y = element_text(size=12, face = "italic"),
+          #axis.ticks.x = element_blank(),
+          text = element_text(size = 12),
+          strip.background = element_rect(colour="white", fill="white", size=1.5, linetype="solid")
+    ) +
+    xlim(-4, 4) +
+    xlab("Effect size (BPL vs ALR)") + ylab("")
+suppl_fig2b
+
+# Corncob week 8: Compare HFD
+corncob_dat <- ps %>%
+    subset_samples(physeq = ., Week == "w8" & Diet == 'HFD') %>%
+    tax_glom(physeq = ., taxrank = TAXRANK)
+da_analysis <-
+    differentialTest(formula = ~ Strain + Sex,
+                     phi.formula = ~ Strain + Sex, # model to be fitted to the dispersion
+                     formula_null = ~ Sex, # Formula for mean under null, without response
+                     phi.formula_null = ~ Strain + Sex, # Formula for overdispersion under null, without response
+                     test = "Wald", boot = FALSE, B = 0,
+                     data = corncob_dat,
+                     fdr_cutoff = sigLevel)
+da_plot <- plot(da_analysis, level = c("Phylum")) + ggplot2::xlim(c(-10,10))
+da_data <- data.frame(
+    Taxa = corncob::otu_to_taxonomy(OTU = da_analysis$significant_taxa, data = corncob_dat, level = TAXRANK),
+    Taxa_veri = da_plot$data$taxa,
+    p_fdr = da_analysis$p_fdr[da_analysis$p_fdr < sigLevel & !is.na(da_analysis$p_fdr) ],
+    Effect = da_plot$data$x,
+    Error_min = da_plot$data$xmin,
+    Error_max = da_plot$data$xmax
+)
+
+suppl_fig2c <- da_data %>%
+    dplyr::mutate(Taxa = gsub(pattern = "_", replacement = " ", Taxa)) %>%
+    ggplot(data = ., aes(x = Effect, y = factor(Taxa, levels = rev(levels(factor(Taxa)))))) +
+    geom_point(size = 3) +
+    geom_errorbar(aes(xmin=Error_min, xmax=Error_max), width=.3,
+                  position=position_dodge(.9)) +
+    geom_vline(xintercept=0, linetype="dashed",
+               color = "grey45", size = 1) +
+    theme(axis.line = element_line(colour = "black"),
+          legend.position = "none",
+          panel.grid.major = element_line(size = 0.25, linetype = 'solid',
+                                          colour = "grey85"),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank(),
+          axis.text.x = element_text(size=12),
+          strip.text.x = element_text(angle = 0, size = 12),
+          axis.text.y = element_text(size=12, face = "italic"),
+          #axis.ticks.x = element_blank(),
+          text = element_text(size = 12),
+          strip.background = element_rect(colour="white", fill="white", size=1.5, linetype="solid")
+    ) +
+    xlim(-4, 4) +
+    xlab("Effect size (BPL vs ALR)") + ylab("")
+suppl_fig2c
+
+# Corncob week 8: Compare ALR
+corncob_dat <- ps %>%
+    subset_samples(physeq = ., Week == "w8" & Strain == 'ALR') %>%
+    tax_glom(physeq = ., taxrank = TAXRANK)
+da_analysis <-
+    differentialTest(formula = ~ Diet + Sex,
+                     phi.formula = ~ Diet + Sex, # model to be fitted to the dispersion
+                     formula_null = ~ Sex, # Formula for mean under null, without response
+                     phi.formula_null = ~ Diet + Sex, # Formula for overdispersion under null, without response
+                     test = "Wald", boot = FALSE, B = 0,
+                     data = corncob_dat,
+                     fdr_cutoff = sigLevel)
+da_plot <- plot(da_analysis, level = c("Phylum")) + ggplot2::xlim(c(-10,10))
+da_data <- data.frame(
+    Taxa = corncob::otu_to_taxonomy(OTU = da_analysis$significant_taxa, data = corncob_dat, level = TAXRANK),
+    Taxa_veri = da_plot$data$taxa,
+    p_fdr = da_analysis$p_fdr[da_analysis$p_fdr < sigLevel & !is.na(da_analysis$p_fdr) ],
+    Effect = da_plot$data$x,
+    Error_min = da_plot$data$xmin,
+    Error_max = da_plot$data$xmax
+)
+
+suppl_fig2d <- da_data %>%
+    dplyr::mutate(Taxa = gsub(pattern = "_", replacement = " ", Taxa)) %>%
+    ggplot(data = ., aes(x = Effect, y = factor(Taxa, levels = rev(levels(factor(Taxa)))))) +
+    geom_point(size = 3) +
+    geom_errorbar(aes(xmin=Error_min, xmax=Error_max), width=.3,
+                  position=position_dodge(.9)) +
+    geom_vline(xintercept=0, linetype="dashed",
+               color = "grey45", size = 1) +
+    theme(axis.line = element_line(colour = "black"),
+          legend.position = "none",
+          panel.grid.major = element_line(size = 0.25, linetype = 'solid',
+                                          colour = "grey85"),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank(),
+          axis.text.x = element_text(size=12),
+          strip.text.x = element_text(angle = 0, size = 12),
+          axis.text.y = element_text(size=12, face = "italic"),
+          #axis.ticks.x = element_blank(),
+          text = element_text(size = 12),
+          strip.background = element_rect(colour="white", fill="white", size=1.5, linetype="solid")
+    ) +
+    xlim(-4, 4) +
+    xlab("Effect size (HFD vs CD)") + ylab("")
+suppl_fig2d
+
+# Corncob week 8: Compare BPL
+corncob_dat <- ps %>%
+    subset_samples(physeq = ., Week == "w8" & Strain == 'BPL') %>%
+    tax_glom(physeq = ., taxrank = TAXRANK)
+da_analysis <-
+    differentialTest(formula = ~ Diet + Sex,
+                     phi.formula = ~ Diet + Sex, # model to be fitted to the dispersion
+                     formula_null = ~ Sex, # Formula for mean under null, without response
+                     phi.formula_null = ~ Diet + Sex, # Formula for overdispersion under null, without response
+                     test = "Wald", boot = FALSE, B = 0,
+                     data = corncob_dat,
+                     fdr_cutoff = sigLevel)
+da_plot <- plot(da_analysis, level = c("Phylum")) + ggplot2::xlim(c(-10,10))
+da_data <- data.frame(
+    Taxa = corncob::otu_to_taxonomy(OTU = da_analysis$significant_taxa, data = corncob_dat, level = TAXRANK),
+    Taxa_veri = da_plot$data$taxa,
+    p_fdr = da_analysis$p_fdr[da_analysis$p_fdr < sigLevel & !is.na(da_analysis$p_fdr) ],
+    Effect = da_plot$data$x,
+    Error_min = da_plot$data$xmin,
+    Error_max = da_plot$data$xmax
+)
+
+suppl_fig2e <- da_data %>%
+    dplyr::mutate(Taxa = gsub(pattern = "_", replacement = " ", Taxa)) %>%
+    ggplot(data = ., aes(x = Effect, y = factor(Taxa, levels = rev(levels(factor(Taxa)))))) +
+    geom_point(size = 3) +
+    geom_errorbar(aes(xmin=Error_min, xmax=Error_max), width=.3,
+                  position=position_dodge(.9)) +
+    geom_vline(xintercept=0, linetype="dashed",
+               color = "grey45", size = 1) +
+    theme(axis.line = element_line(colour = "black"),
+          legend.position = "none",
+          panel.grid.major = element_line(size = 0.25, linetype = 'solid',
+                                          colour = "grey85"),
+          panel.grid.minor = element_blank(),
+          panel.border = element_blank(),
+          panel.background = element_blank(),
+          axis.text.x = element_text(size=12),
+          strip.text.x = element_text(angle = 0, size = 12),
+          axis.text.y = element_text(size=12, face = "italic"),
+          #axis.ticks.x = element_blank(),
+          text = element_text(size = 12),
+          strip.background = element_rect(colour="white", fill="white", size=1.5, linetype="solid")
+    ) +
+    xlim(-4, 4) +
+    xlab("Effect size (HFD vs CD)") + ylab("")
+suppl_fig2e
+
 # Save workspace ----------------------------------------------------------
 
 save.image(file='data/99_plots_paper.RData')
@@ -715,6 +961,9 @@ save.image(file='data/99_plots_paper.RData')
 # Fig3
 # Fig4
 # Fig5
+
+# Suppl Fig 1
+# Suppl Fig 2
 
 # Fig 1 a,b ---------------------------------------------------------------
 
@@ -729,9 +978,6 @@ fig1 <- gridExtra::arrangeGrob(fig_1a, fig_1b,
     )
 fig1
 ggsave(filename = "plots_paper/panelplot_Fig1.pdf", width = 12, height = 6, units = 'in', plot = fig1)
-
-suppl_fig1
-ggsave(filename = "plots_paper/panelplot_Supp_Fig1.pdf", width = 6, height = 6, units = 'in', plot = suppl_fig1)
 
 # Fig 2 a,b ---------------------------------------------------------------
 
@@ -791,3 +1037,25 @@ ggsave(filename = "plots_paper/panelplot_Fig4.pdf", width = 12, height = 12, uni
 
 fig_5
 ggsave(filename = "plots_paper/panelplot_Fig5.pdf", width = 9, height = 9, units = 'in', plot = fig_5)
+
+# Suppl Fig 1 -------------------------------------------------------------
+
+suppl_fig1
+ggsave(filename = "plots_paper/panelplot_Supp_Fig1.pdf", width = 6, height = 6, units = 'in', plot = suppl_fig1)
+
+# Suppl Fig 2 -------------------------------------------------------------
+
+lay <- rbind(c(1,2,3),
+             c(4,5,NA))
+
+# use arrangeGrob instead of grid.arrange to not draw the figure
+suppl_fig2 <- gridExtra::arrangeGrob(suppl_fig2a, suppl_fig2b, suppl_fig2c,
+                                    suppl_fig2d, suppl_fig2e,
+                               layout_matrix = lay) %>%
+    as_ggplot(.) +
+    cowplot::draw_plot_label(label = c("A", "B", "C", "D", "E"), size = 15,
+                             x = c(0, 0.33, 0.66, 0, 0.33),
+                             y = c(1, 1, 1, 0.5, 0.5)
+    )
+suppl_fig2
+ggsave(filename = "plots_paper/panelplot_Supp_Fig2.pdf", width = 15, height = 9, units = 'in', plot = suppl_fig2)
