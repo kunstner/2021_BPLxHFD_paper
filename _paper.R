@@ -668,6 +668,9 @@ fig_4b <- cor_genus %>%
     xlab("") + ylab("")
 fig_4b
 
+cor_genus %>%
+    dplyr::filter(Tax == "Prevotellamassilia")
+
 # Figure 5 ----------------------------------------------------------------
 
 # concentrating on week 8 HFD samples
@@ -965,6 +968,8 @@ save.image(file='data/99_plots_paper.RData')
 # Suppl Fig 1
 # Suppl Fig 2
 
+load("data/99_plots_paper.RData")
+
 # Fig 1 a,b ---------------------------------------------------------------
 
 lay <- rbind(c(1,1,1,2,2))
@@ -1053,9 +1058,13 @@ suppl_fig2 <- gridExtra::arrangeGrob(suppl_fig2a, suppl_fig2b, suppl_fig2c,
                                     suppl_fig2d, suppl_fig2e,
                                layout_matrix = lay) %>%
     as_ggplot(.) +
-    cowplot::draw_plot_label(label = c("A", "B", "C", "D", "E"), size = 15,
+    cowplot::draw_plot_label(label = c("A", "B", "C", "D", "E"), size = 16,
                              x = c(0, 0.33, 0.66, 0, 0.33),
                              y = c(1, 1, 1, 0.5, 0.5)
     )
 suppl_fig2
-ggsave(filename = "plots_paper/panelplot_Supp_Fig2.pdf", width = 15, height = 9, units = 'in', plot = suppl_fig2)
+ggsave(filename = "plots_paper/panelplot_Supp_Fig2.pdf", width = 10, height = 5, units = 'in', plot = suppl_fig2)
+
+# Session Info ------------------------------------------------------------
+
+sessioninfo::session_info(include_base = TRUE)
